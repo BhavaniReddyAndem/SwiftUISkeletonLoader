@@ -73,6 +73,53 @@ struct ProfileHeaderView: View {
     }
 }
 
+struct ProfileStatsView: View {
+    let isLoading: Bool
+    
+    var body: some View {
+        HStack(spacing: 40) {
+            VStack {
+                Text("1,234")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .skeleton(isActive: isLoading)
+                
+                Text("Followers")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .skeleton(isActive: isLoading)
+            }
+            
+            VStack {
+                Text("567")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .skeleton(isActive: isLoading)
+                
+                Text("Following")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .skeleton(isActive: isLoading)
+            }
+            
+            VStack {
+                Text("89")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .skeleton(isActive: isLoading)
+                
+                Text("Posts")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .skeleton(isActive: isLoading)
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(16)
+    }
+}
+
 struct ProfileBioView: View {
     let isLoading: Bool
     
@@ -105,7 +152,6 @@ struct ProfileBioView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
-
 
 struct ProfilePostsView: View {
     let isLoading: Bool
