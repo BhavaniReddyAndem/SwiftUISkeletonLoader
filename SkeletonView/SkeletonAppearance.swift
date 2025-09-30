@@ -546,10 +546,342 @@ extension View {
         }
     }
 }
+// MARK: - Advanced Features
 
+// MARK: - Skeleton Shape Types
+public enum SkeletonShape {
+    case rectangle
+    case roundedRectangle(cornerRadius: CGFloat)
+    case capsule
+    case circle
+    case custom(shape: AnyShape)
+}
 
+public struct AnyShape: Shape {
+    private let _path: (CGRect) -> Path
+    
+    public init<S: Shape>(_ shape: S) {
+        _path = { rect in
+            shape.path(in: rect)
+        }
+    }
+    
+    public func path(in rect: CGRect) -> Path {
+        _path(rect)
+    }
+}
 
+// MARK: - Skeleton Effect Modifiers
+public enum SkeletonEffect {
+    case standard
+    case bordered(color: Color, width: CGFloat)
+    case shadowed(color: Color, radius: CGFloat, x: CGFloat, y: CGFloat)
+    case glowing(color: Color, radius: CGFloat)
+    case glassmorphism
+}
 
+// MARK: - Smart Skeleton (Auto-detects content type)
+public struct SmartSkeletonModifier: ViewModifier {
+    let isActive: Bool
+    let animation: SkeletonAnimation
+    let intelligentLines: Bool
+    
+    public func body(content: Content) -> some View {
+        if isActive {
+            content
+                .hidden()
+                .overlay(
+                    GeometryReader { geometry in
+                        SkeletonView(
+                            isActive: true,
+                            animation: animation,
+                            lines: intelligentLines ? calculateLines(for: geometry.size) : 1
+                        ) {
+                            EmptyView()
+                        }
+                    }
+                )
+        } else {
+            content
+        }
+    }
+    
+    private func calculateLines(for size: CGSize) -> Int {
+        // Intelligently calculate number of lines based on height
+        let lineHeight: CGFloat = 20
+        let spacing: CGFloat = 8
+        let lines = Int((size.height + spacing) / (lineHeight + spacing))
+        return max(1, min(lines, 10)) // Cap between 1-10 lines
+    }
+}
+
+// MARK: - Skeleton with Accessibility Support
+public struct AccessibleSkeletonModifier: ViewModifier {
+    let isActive: Bool
+    let animation: SkeletonAnimation
+    let accessibilityLabel: String
+    
+    public func body(content: Content) -> some View {
+        content
+            .skeleton(isActive: isActive, animation: animation)
+            .accessibilityLabel(isActive ? "Loading \(accessibilityLabel)" : "")
+            .accessibilityAddTraits(isActive ? .updatesFrequently : [])
+    }
+}
+
+// MARK: - Skeleton with Delay (Prevents flash for fast loads)
+public struct DelayedSkeletonModifier: ViewModifier {
+    let isActive: Bool
+    let animation: SkeletonAnimation
+    let delay: TimeInterval
+    let lines: Int
+    
+    @State private var shouldShow = false
+    @State private var task: Task<Void, Never>?
+    
+    public func body(content: Content) -> some View {
+        content
+            .skeleton(isActive: shouldShow && isActive, animation: animation, lines: lines)
+            .onChange(of: isActive) { newValue in
+                task?.cancel()
+                
+                if newValue {
+                    task = Task {
+                        try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                        if !Task.isCancelled {
+                            withAnimation {
+                                shouldShow = true
+                            }
+                        }
+                    }
+                } else {
+                    shouldShow = false
+                }
+            }
+    }
+}
+
+// MARK: - Skeleton Group (Synchronized animations)
+public struct SkeletonGroup<Content: View>: View {
+    let isActive: Bool
+    let animation: SkeletonAnimation
+    let staggerDelay: TimeInterval
+    let content: Content
+    
+    @State private var animationPhase: Double = 0
+    
+    public init(
+        isActive: Bool,
+        animation: SkeletonAnimation = .pulse(),
+        staggerDelay: TimeInterval = 0.1,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.isActive = isActive
+        self.animation = animation
+        self.staggerDelay = staggerDelay
+        self.content = content()
+    }
+    
+    public var body: some View {
+        content
+            .environment(\.skeletonGroupPhase, animationPhase)
+            .onAppear {
+                if isActive {
+                    startGroupAnimation()
+                }
+            }
+    }
+    
+    private func startGroupAnimation() {
+        withAnimation(.linear(duration: 1.0).repeatForever(autoreverses: false)) {
+            animationPhase = 1.0
+        }
+    }
+}
+
+// Environment key for skeleton group synchronization
+private struct SkeletonGroupPhaseKey: EnvironmentKey {
+    static let defaultValue: Double = 0
+}
+
+extension EnvironmentValues {
+    var skeletonGroupPhase: Double {
+        get { self[SkeletonGroupPhaseKey.self] }
+        set { self[SkeletonGroupPhaseKey.self] = newValue }
+    }
+}
+
+// MARK: - Skeleton with Shape Support
+public struct ShapeSkeletonModifier: ViewModifier {
+    let isActive: Bool
+    let animation: SkeletonAnimation
+    let shape: SkeletonShape
+    let effect: SkeletonEffect
+    
+    public func body(content: Content) -> some View {
+        if isActive {
+            shapeView
+                .overlay(content.hidden())
+        } else {
+            content
+        }
+    }
+    
+    @ViewBuilder
+    private var shapeView: some View {
+        GeometryReader { geometry in
+            ZStack {
+                switch shape {
+                case .rectangle:
+                    Rectangle()
+                        .fill(Color.clear)
+                        .background(skeletonAnimation)
+                        .clipShape(Rectangle())
+                        .applyEffect(effect)
+                        
+                case .roundedRectangle(let radius):
+                    RoundedRectangle(cornerRadius: radius)
+                        .fill(Color.clear)
+                        .background(skeletonAnimation)
+                        .clipShape(RoundedRectangle(cornerRadius: radius))
+                        .applyEffect(effect)
+                        
+                case .capsule:
+                    Capsule()
+                        .fill(Color.clear)
+                        .background(skeletonAnimation)
+                        .clipShape(Capsule())
+                        .applyEffect(effect)
+                        
+                case .circle:
+                    Circle()
+                        .fill(Color.clear)
+                        .background(skeletonAnimation)
+                        .clipShape(Circle())
+                        .applyEffect(effect)
+                        
+                case .custom(let anyShape):
+                    anyShape
+                        .fill(Color.clear)
+                        .background(skeletonAnimation)
+                        .clipShape(anyShape)
+                        .applyEffect(effect)
+                }
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height)
+        }
+    }
+    
+    @ViewBuilder
+    private var skeletonAnimation: some View {
+        SkeletonView(
+            isActive: true,
+            animation: animation,
+            lines: 1
+        ) {
+            EmptyView()
+        }
+    }
+}
+
+// MARK: - Effect Application
+extension View {
+    @ViewBuilder
+    func applyEffect(_ effect: SkeletonEffect) -> some View {
+        switch effect {
+        case .standard:
+            self
+        case .bordered(let color, let width):
+            self.overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(color, lineWidth: width)
+            )
+        case .shadowed(let color, let radius, let x, let y):
+            self.shadow(color: color, radius: radius, x: x, y: y)
+        case .glowing(let color, let radius):
+            self
+                .shadow(color: color.opacity(0.5), radius: radius)
+                .shadow(color: color.opacity(0.3), radius: radius * 2)
+        case .glassmorphism:
+            self
+                .background(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                )
+        }
+    }
+}
+
+// MARK: - Enhanced View Extensions
+extension View {
+    /// Smart skeleton that auto-detects content dimensions
+    public func smartSkeleton(
+        isActive: Bool,
+        animation: SkeletonAnimation = .pulse()
+    ) -> some View {
+        modifier(SmartSkeletonModifier(
+            isActive: isActive,
+            animation: animation,
+            intelligentLines: true
+        ))
+    }
+    
+    /// Skeleton with accessibility support
+    public func accessibleSkeleton(
+        isActive: Bool,
+        animation: SkeletonAnimation = .pulse(),
+        label: String
+    ) -> some View {
+        modifier(AccessibleSkeletonModifier(
+            isActive: isActive,
+            animation: animation,
+            accessibilityLabel: label
+        ))
+    }
+    
+    /// Skeleton with delay (prevents flash on fast loads)
+    public func delayedSkeleton(
+        isActive: Bool,
+        animation: SkeletonAnimation = .pulse(),
+        delay: TimeInterval = 0.3,
+        lines: Int = 1
+    ) -> some View {
+        modifier(DelayedSkeletonModifier(
+            isActive: isActive,
+            animation: animation,
+            delay: delay,
+            lines: lines
+        ))
+    }
+    
+    /// Skeleton with custom shape
+    public func skeleton(
+        isActive: Bool,
+        animation: SkeletonAnimation = .pulse(),
+        shape: SkeletonShape,
+        effect: SkeletonEffect = .standard
+    ) -> some View {
+        modifier(ShapeSkeletonModifier(
+            isActive: isActive,
+            animation: animation,
+            shape: shape,
+            effect: effect
+        ))
+    }
+    
+    /// Skeleton with rounded corners shorthand
+    public func skeletonRounded(
+        isActive: Bool,
+        animation: SkeletonAnimation = .pulse(),
+        cornerRadius: CGFloat = 8,
+        lines: Int = 1
+    ) -> some View {
+        var appearance = SkeletonAppearance.default
+        appearance.cornerRadius = cornerRadius
+        return skeleton(isActive: isActive, animation: animation, appearance: appearance, lines: lines)
+    }
+}
 
 
 struct ColorCustomizationExamples: View {
