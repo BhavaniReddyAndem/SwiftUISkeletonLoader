@@ -16,6 +16,7 @@ struct ContentView: View {
                 NavigationLink("Card Examples", destination: CardExamplesView())
                 NavigationLink("Profile Examples", destination: ProfileExamplesView())
                 NavigationLink("Animation Gallery", destination: AnimationGalleryView())
+                NavigationLink("Color Gallery", destination: ColorCustomizationExamples())
             }
             .navigationTitle("SkeletonUI")
         }

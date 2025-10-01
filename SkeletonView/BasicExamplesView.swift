@@ -125,6 +125,7 @@ struct BasicExamplesView: View {
                 .padding(.top)
             }
             .padding()
+
         }
         .navigationTitle("Basic Examples")
         .navigationBarTitleDisplayMode(.inline)

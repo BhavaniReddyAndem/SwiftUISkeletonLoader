@@ -1,11 +1,11 @@
+//
+//  SkeletonAppearance.swift
+//  SkeletonAppearance
+//
+//  Created by Bhavani Reddy Navure on 9/25/25.
+//
+
 import SwiftUI
-
-// MARK: - SkeletonUI Library Implementation
-
-// MARK: - Skeleton Appearance Configuration
-import SwiftUI
-
-// MARK: - SkeletonUI Library Implementation
 
 // MARK: - Skeleton Appearance Configuration
 public struct SkeletonAppearance {
@@ -150,7 +150,9 @@ public struct SkeletonView: View {
     
     @State private var animationOffset: CGFloat = -200
     @State private var pulseOpacity: Double = 0.3
-    @State private var waveOffset: CGFloat = -1
+    @State private var waveOffset: CGFloat = -100
+//    @State private var waveOffset: CGFloat = -200
+
     @State private var shimmerOffset: CGFloat = -200
     
     public init<Content: View>(
@@ -281,21 +283,24 @@ public struct SkeletonView: View {
     
     private func waveGradient(customColor: Color? = nil) -> some View {
         let baseColor = customColor ?? appearance.gradient.baseColor
-        let highlightColor = customColor?.opacity(0.3) ?? appearance.gradient.highlightColor
         
         return baseColor
             .overlay(
                 LinearGradient(
-                    colors: [.clear, highlightColor.opacity(0.8), .clear],
+                    colors: [.clear, Color.white.opacity(0.8), .clear],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
-                .mask(
-                    Rectangle()
-                        .offset(x: waveOffset * 300)
+                .frame(width: 200)
+                .offset(x: waveOffset)
+                .blendMode(.screen)
+                .animation(
+                    .linear(duration: getDuration())
+                        .repeatForever(autoreverses: false),
+                    value: waveOffset
                 )
-                .animation(.easeInOut(duration: getDuration()).repeatForever(autoreverses: false), value: waveOffset)
             )
+            .clipShape(RoundedRectangle(cornerRadius: appearance.cornerRadius))
     }
     
     private var transitionStyle: AnyTransition {
@@ -336,12 +341,13 @@ public struct SkeletonView: View {
             withAnimation(.linear(duration: duration).repeatForever(autoreverses: false)) {
                 shimmerOffset = 400
             }
-            
+        
         case .wave(let duration, _):
+            waveOffset = -100
             withAnimation(.easeInOut(duration: duration).repeatForever(autoreverses: false)) {
-                waveOffset = 2
+                waveOffset = 400
             }
-        }
+    }
     }
 }
 
@@ -882,7 +888,6 @@ extension View {
         return skeleton(isActive: isActive, animation: animation, appearance: appearance, lines: lines)
     }
 }
-
 
 struct ColorCustomizationExamples: View {
     @State private var isLoading = true
