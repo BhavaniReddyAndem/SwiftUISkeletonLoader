@@ -16,7 +16,7 @@
   <b>An elegant, powerful skeleton loading animation library for SwiftUI</b>
   <br>
 </p>
-An elegant, powerful skeleton loading animation library for SwiftUI, inspired by the popular [SkeletonView](https://github.com/Juanpe/SkeletonView) for UIKit.
+
 
 **SkeletonUI** provides a seamless way to show users that content is loading while preparing them for what's coming. With just a few lines of code, you can add beautiful, customizable skeleton animations to any SwiftUI view.
 
