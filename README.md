@@ -1,6 +1,9 @@
 # SwiftUISkeletonLoader 💀
 
 <p align="center">
+  <img src="assets/skeleton-ui-banner.svg" alt="SkeletonUI Animated Banner" width="800"/>
+</p>
+<p align="center">
     <img src="https://img.shields.io/badge/iOS-15.0+-blue.svg" alt="iOS 15.0+"/>
     <img src="https://img.shields.io/badge/macOS-12.0+-blue.svg" alt="macOS 12.0+"/>
     <img src="https://img.shields.io/badge/tvOS-15.0+-blue.svg" alt="tvOS 15.0+"/>
@@ -9,7 +12,10 @@
     <img src="https://img.shields.io/badge/SwiftUI-5.0+-orange.svg" alt="SwiftUI 5.0+"/>
     <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License"/>
 </p>
-
+<p align="center">
+  <b>An elegant, powerful skeleton loading animation library for SwiftUI</b>
+  <br>
+</p>
 An elegant, powerful skeleton loading animation library for SwiftUI, inspired by the popular [SkeletonView](https://github.com/Juanpe/SkeletonView) for UIKit.
 
 **SkeletonUI** provides a seamless way to show users that content is loading while preparing them for what's coming. With just a few lines of code, you can add beautiful, customizable skeleton animations to any SwiftUI view.
