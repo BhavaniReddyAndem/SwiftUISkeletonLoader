@@ -18,7 +18,7 @@
 </p>
 
 
-**SkeletonUI** provides a seamless way to show users that content is loading while preparing them for what's coming. With just a few lines of code, you can add beautiful, customizable skeleton animations to any SwiftUI view.
+**SwiftUISkeletonLoader** provides a seamless way to show users that content is loading while preparing them for what's coming. With just a few lines of code, you can add beautiful, customizable skeleton animations to any SwiftUI view.
 
 ## 🌟 Why SkeletonUI?
 
