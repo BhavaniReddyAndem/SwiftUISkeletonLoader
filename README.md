@@ -485,8 +485,6 @@ We welcome contributions! Here's how you can help:
 SkeletonUI is available under the MIT license. See the [LICENSE](LICENSE) file for more info.
 
 ## 🙏 Acknowledgments
-
-- Inspired by [SkeletonView](https://github.com/Juanpe/SkeletonView) by Juanpe Catalán
 - Built with ❤️ for the SwiftUI community
 
 ---
